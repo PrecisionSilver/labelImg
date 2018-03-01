@@ -11,6 +11,7 @@ except ImportError:
 
 from libs.shape import Shape
 from libs.lib import distance
+from libs.tile import *
 
 CURSOR_DEFAULT = Qt.ArrowCursor
 CURSOR_POINT = Qt.PointingHandCursor
@@ -38,6 +39,7 @@ class Canvas(QWidget):
         # Initialise local state.
         self.mode = self.EDIT
         self.shapes = []
+        #self.tiles = []
         self.current = None
         self.selectedShape = None  # save the selected shape here
         self.selectedShapeCopy = None
@@ -672,3 +674,16 @@ class Canvas(QWidget):
         self.restoreCursor()
         self.pixmap = None
         self.update()
+
+    def addTile(self):
+        self.shapes.append(Tile())
+
+    def paintTile(self):
+        self.update()
+
+
+    
+
+
+
+

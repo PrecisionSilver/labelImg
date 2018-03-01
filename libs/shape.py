@@ -60,6 +60,7 @@ class Shape(object):
 
     def close(self):
         self._closed = True
+        #print(self.points)
 
     def reachMaxPoints(self):
         if len(self.points) >= 4:

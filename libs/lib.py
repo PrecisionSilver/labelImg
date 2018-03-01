@@ -26,6 +26,7 @@ def newButton(text, icon=None, slot=None):
 def newAction(parent, text, slot=None, shortcut=None, icon=None,
               tip=None, checkable=False, enabled=True):
     """Create a new action and assign callbacks, shortcuts, etc."""
+    #import pdb; pdb.set_trace()
     a = QAction(text, parent)
     if icon is not None:
         a.setIcon(newIcon(icon))

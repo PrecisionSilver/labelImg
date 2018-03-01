@@ -253,6 +253,9 @@ class MainWindow(QMainWindow, WindowMixin):
         copy = action('&Duplicate\nRectBox', self.copySelectedShape,
                       'Ctrl+D', 'copy', u'Create a duplicate of the selected Box',
                       enabled=False)
+        # new action: tile Image
+        tileMode = action('&Tile Mode', self.setTileMode, 'Ctrl+Shift+T', checkable=True, enabled=False)
+        tileImage = action('&Tile', self.createTiles, 'T', enabled=False)
 
         advancedMode = action('&Advanced Mode', self.toggleAdvancedMode,
                               'Ctrl+Shift+A', 'expert', u'Switch to advanced mode',
@@ -315,6 +318,8 @@ class MainWindow(QMainWindow, WindowMixin):
         labels.setText('Show/Hide Label Panel')
         labels.setShortcut('Ctrl+Shift+L')
 
+        
+
         # Lavel list context menu.
         labelMenu = QMenu()
         addActions(labelMenu, (edit, delete))
@@ -328,18 +333,18 @@ class MainWindow(QMainWindow, WindowMixin):
                               createMode=createMode, editMode=editMode, advancedMode=advancedMode,
                               shapeLineColor=shapeLineColor, shapeFillColor=shapeFillColor,
                               zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
-                              fitWindow=fitWindow, fitWidth=fitWidth,
+                              fitWindow=fitWindow, fitWidth=fitWidth, tileImage=tileImage, tileMode=tileMode,
                               zoomActions=zoomActions,
                               fileMenuActions=(
                                   open, opendir, save, saveAs, close, resetAll, quit),
                               beginner=(), advanced=(),
                               editMenu=(edit, copy, delete,
-                                        None, color1),
+                                        None, color1, tileImage, tileMode),
                               beginnerContext=(create, edit, copy, delete),
                               advancedContext=(createMode, editMode, edit, copy,
                                                delete, shapeLineColor, shapeFillColor),
                               onLoadActive=(
-                                  close, create, createMode, editMode),
+                                  close, create, createMode, editMode, tileMode),
                               onShapesPresent=(saveAs, hideAll, showAll))
 
         self.menus = struct(
@@ -572,6 +577,12 @@ class MainWindow(QMainWindow, WindowMixin):
         self.actions.createMode.setEnabled(edit)
         self.actions.editMode.setEnabled(not edit)
 
+    def toggleTileMode(self, value):
+        #self.canvas.setEditing(edit)
+        self.actions.createMode.setEnabled(not value)
+        self.actions.editMode.setEnabled(not value)
+        self.actions.tileImage.setEnabled(value)
+
     def setCreateMode(self):
         assert self.advanced()
         self.toggleDrawMode(False)
@@ -580,6 +591,11 @@ class MainWindow(QMainWindow, WindowMixin):
         assert self.advanced()
         self.toggleDrawMode(True)
         self.labelSelectionChanged()
+
+    def setTileMode(self):
+        #assert self.advanced()
+        value = self.actions.tileMode.isChecked()
+        self.toggleTileMode(value)
 
     def updateFileMenu(self):
         currFilePath = self.filePath
@@ -736,6 +752,12 @@ class MainWindow(QMainWindow, WindowMixin):
         self.addLabel(self.canvas.copySelectedShape())
         # fix copy and delete
         self.shapeSelectionChanged(True)
+
+    def createTiles(self):
+        print('create tile')
+        self.canvas.addTile()
+        self.canvas.paintTile()
+        self.addLabel(self.canvas.shapes[-1])
 
     def labelSelectionChanged(self):
         item = self.currentItem()
@@ -1308,7 +1330,6 @@ class MainWindow(QMainWindow, WindowMixin):
         shapes = tVocParseReader.getShapes()
         self.loadLabels(shapes)
         self.canvas.verified = tVocParseReader.verified
-
 
 def inverted(color):
     return QColor(*[255 - v for v in color.getRgb()])
