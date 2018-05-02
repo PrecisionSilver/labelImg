@@ -255,7 +255,11 @@ class MainWindow(QMainWindow, WindowMixin):
                       enabled=False)
         # new action: tile Image
         tileMode = action('&Tile Mode', self.setTileMode, 'Ctrl+Shift+T', checkable=True, enabled=False)
+        
         tileImage = action('&Tile', self.createTiles, 'T', enabled=False)
+        
+        copyLastShape = action('&Copy Last', self.copyLast, 'C', enabled=False)
+        #####################################################################################
 
         advancedMode = action('&Advanced Mode', self.toggleAdvancedMode,
                               'Ctrl+Shift+A', 'expert', u'Switch to advanced mode',
@@ -333,19 +337,19 @@ class MainWindow(QMainWindow, WindowMixin):
                               createMode=createMode, editMode=editMode, advancedMode=advancedMode,
                               shapeLineColor=shapeLineColor, shapeFillColor=shapeFillColor,
                               zoom=zoom, zoomIn=zoomIn, zoomOut=zoomOut, zoomOrg=zoomOrg,
-                              fitWindow=fitWindow, fitWidth=fitWidth, tileImage=tileImage, tileMode=tileMode,
-                              zoomActions=zoomActions,
+                              fitWindow=fitWindow, fitWidth=fitWidth, 
+                              zoomActions=zoomActions, tileImage=tileImage, tileMode=tileMode, copyLastShape=copyLastShape,
                               fileMenuActions=(
                                   open, opendir, save, saveAs, close, resetAll, quit),
                               beginner=(), advanced=(),
                               editMenu=(edit, copy, delete,
-                                        None, color1, tileImage, tileMode),
+                                        None, color1, tileImage, tileMode, copyLastShape),
                               beginnerContext=(create, edit, copy, delete),
                               advancedContext=(createMode, editMode, edit, copy,
                                                delete, shapeLineColor, shapeFillColor),
                               onLoadActive=(
                                   close, create, createMode, editMode, tileMode),
-                              onShapesPresent=(saveAs, hideAll, showAll))
+                              onShapesPresent=(saveAs, hideAll, showAll, copyLastShape))
 
         self.menus = struct(
             file=self.menu('&File'),
@@ -580,8 +584,19 @@ class MainWindow(QMainWindow, WindowMixin):
     def toggleTileMode(self, value):
         #self.canvas.setEditing(edit)
         self.actions.createMode.setEnabled(not value)
+        self.actions.create.setEnabled(not value)
         self.actions.editMode.setEnabled(not value)
         self.actions.tileImage.setEnabled(value)
+        
+        if self.canvas.shapes:
+            self.actions.copyLastShape.setEnabled(value)
+
+        if value:
+            self.lineColor = QColor(255, 255, 0, 255)
+
+        else:
+            self.lineColor = DEFAULT_LINE_COLOR
+
 
     def setCreateMode(self):
         assert self.advanced()
@@ -684,7 +699,11 @@ class MainWindow(QMainWindow, WindowMixin):
         self.shapesToItems[shape] = item
         self.labelList.addItem(item)
         for action in self.actions.onShapesPresent:
-            action.setEnabled(True)
+            flag = True
+            if action == self.actions.copyLastShape:
+                flag = (flag and self.actions.tileMode.isChecked())
+
+            action.setEnabled(flag)
 
     def remLabel(self, shape):
         if shape is None:
@@ -708,7 +727,12 @@ class MainWindow(QMainWindow, WindowMixin):
             if line_color:
                 shape.line_color = QColor(*line_color)
             else:
-                shape.line_color = generateColorByText(label)
+                if label == 'Tile':
+                    shape.line_color = QColor(255, 255, 0, 255)
+                elif label == 'tassel':
+                    shape.line_color = QColor(255, 0, 0, 255)
+                else:
+                    shape.line_color = generateColorByText(label)
 
             if fill_color:
                 shape.fill_color = QColor(*fill_color)
@@ -751,6 +775,12 @@ class MainWindow(QMainWindow, WindowMixin):
     def copySelectedShape(self):
         self.addLabel(self.canvas.copySelectedShape())
         # fix copy and delete
+        self.shapeSelectionChanged(True)
+
+    def copyLast(self):
+        self.canvas.selectShape(self.canvas.shapes[-1])
+        self.addLabel(self.canvas.copySelectedShape())
+        self.canvas.selectShape(self.canvas.shapes[-1])
         self.shapeSelectionChanged(True)
 
     def createTiles(self):
@@ -1046,7 +1076,7 @@ class MainWindow(QMainWindow, WindowMixin):
             self.loadFile(filename)
 
     def scanAllImages(self, folderPath):
-        extensions = ['.jpeg', '.jpg', '.png', '.bmp']
+        extensions = ['.jpeg', '.jpg', '.png', '.bmp', '.tif']
         images = []
 
         for root, dirs, files in os.walk(folderPath):
