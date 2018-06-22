@@ -10,7 +10,7 @@ class Tile(Shape):
 
 	# The following class variables influence the drawing
 	# of _all_ shape objects.
-	line_color = DEFAULT_LINE_COLOR
+	line_color = QColor(255, 255, 0, 255)
 	fill_color = DEFAULT_FILL_COLOR
 	select_line_color = DEFAULT_SELECT_LINE_COLOR
 	select_fill_color = DEFAULT_SELECT_FILL_COLOR
@@ -22,10 +22,10 @@ class Tile(Shape):
 
 	def __init__(self):
 		super(Tile, self).__init__(label='Tile')
-		super(Tile, self).addPoint(QPointF(0.0, 0.0))
-		super(Tile, self).addPoint(QPointF(290.0, 0.0))
+		super(Tile, self).addPoint(QPointF(1.0, 1.0))
+		super(Tile, self).addPoint(QPointF(290.0, 1.0))
 		super(Tile, self).addPoint(QPointF(290.0, 290.0))
-		super(Tile, self).addPoint(QPointF(0.0, 290.0))
+		super(Tile, self).addPoint(QPointF(1.0, 290.0))
 		super(Tile, self).close()
 
 		#print(self.points)

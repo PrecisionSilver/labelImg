@@ -5,6 +5,7 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement
 from lxml import etree
 import codecs
+import os
 
 XML_EXT = '.xml'
 ENCODE_METHOD = 'utf-8'
@@ -44,6 +45,24 @@ class PascalVocWriter:
         top = Element('annotation')
         if self.verified:
             top.set('verified', 'yes')
+
+        # 5/2/2018 save area
+        #print(self.filename)
+        #print(self.localImgPath)
+        basename, ext = self.localImgPath.split('.')
+        xmlfname = basename + XML_EXT
+        print(xmlfname)
+        if os.path.exists(xmlfname):
+            try:
+                tr = ElementTree.parse(xmlfname)
+                rt = tr.getroot()
+                area = rt.find('area').text
+                ar = SubElement(top, 'area')
+                ar.text = area
+            except:
+                pass
+            # print(ar.text)
+
 
         folder = SubElement(top, 'folder')
         folder.text = self.foldername
